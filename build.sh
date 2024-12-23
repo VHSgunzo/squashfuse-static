@@ -24,7 +24,7 @@ if [ -x "$(which apt 2>/dev/null)" ]
     then
         apt update && apt install -y \
             build-essential clang pkg-config git fuse3 po4a meson ninja-build \
-            libzstd-dev liblz4-dev liblzo2-dev liblzma-dev zlib1g-dev \
+            libzstd-dev liblz4-dev liblzo2-dev zlib1g-dev \
             libfuse3-dev libsquashfuse-dev autoconf libtool upx wget autopoint
 elif [ -x "$(which apk 2>/dev/null)" ]
     then
@@ -76,13 +76,6 @@ echo "= build static deps"
 [ -d "/usr/lib/$platform_arch-linux-gnu" ] && \
     libdir="/usr/lib/$platform_arch-linux-gnu/"||\
     libdir="/usr/lib/"
-
-echo "= build lzma lib"
-(git clone https://git.tukaani.org/xz.git && cd xz
-./autogen.sh
-./configure --enable-static --disable-shared
-make
-mv -fv src/liblzma/.libs/liblzma.a $libdir)
 
 echo "= build lzo2 lib"
 (git clone https://github.com/nemequ/lzo.git && cd lzo
