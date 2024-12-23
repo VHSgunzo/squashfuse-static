@@ -20,14 +20,20 @@ if [ "$platform" == "Linux" ]
         exit 1
 fi
 
+unset build_libc
 if [ -x "$(which apt 2>/dev/null)" ]
     then
-        apt update && apt install -y \
+        build_libc='-glibc'
+        export DEBIAN_PRIORITY=critical
+        export DEBIAN_FRONTEND=noninteractive
+        apt update && apt install --yes --quiet \
+            --option Dpkg::Options::=--force-confold --option Dpkg::Options::=--force-confdef \
             build-essential clang pkg-config git fuse3 po4a meson ninja-build \
             libzstd-dev liblz4-dev liblzo2-dev liblzma-dev zlib1g-dev \
             libfuse3-dev libsquashfuse-dev autoconf libtool upx wget autopoint
 elif [ -x "$(which apk 2>/dev/null)" ]
     then
+        build_libc='-musl'
         apk add musl-dev gcc clang git gettext-dev automake po4a cmake linux-headers \
             autoconf libtool help2man make zstd-dev lz4-dev upx \
             zlib-dev lzo-dev xz-dev sed findutils fuse3-dev meson ninja-build
@@ -132,7 +138,7 @@ make DESTDIR="${squashfuse_dir}/install" LDFLAGS="$LDFLAGS" install)
 echo "= extracting squashfuse binaries and libraries"
 for bin in "${squashfuse_dir}"/install/usr/local/bin/*
     do [[ ! -L "$bin" && -f "$bin" ]] && \
-        mv -fv "$bin" "${HERE}"/release/"$(basename "${bin}")-${platform_arch}"
+        mv -fv "$bin" "${HERE}"/release/"$(basename "${bin}")${build_libc}-${platform_arch}"
 done)
 
 echo "= build super-strip"
