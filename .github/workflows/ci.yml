@@ -21,20 +21,20 @@ jobs:
         run: |
           sudo sh -c 'apt update && apt install qemu-user-static -y'
 
-      - name: Build x86_64 musl
-        run: |
-            docker run --rm -v "${{ github.workspace }}:/root" --platform=linux/amd64 alpine:latest /root/build.sh
-
-      - name: Build aarch64 musl
-        run: |
-            docker run --rm -v "${{ github.workspace }}:/root" --platform=linux/arm64 alpine:latest /root/build.sh
-
-      - name: Rename musl
-        run: |
-            shopt -s extglob
-            for bin in $(ls release/!(*glibc*|*musl*))
-                do sudo mv "$bin" release/"$(basename "$bin"|sed 's|squashfuse|squashfuse-musl|')"
-            done
+      # - name: Build x86_64 musl
+      #   run: |
+      #       docker run --rm -v "${{ github.workspace }}:/root" --platform=linux/amd64 alpine:latest /root/build.sh
+      #
+      # - name: Build aarch64 musl
+      #   run: |
+      #       docker run --rm -v "${{ github.workspace }}:/root" --platform=linux/arm64 alpine:latest /root/build.sh
+      #
+      # - name: Rename musl
+      #   run: |
+      #       shopt -s extglob
+      #       for bin in $(ls release/!(*glibc*|*musl*))
+      #           do sudo mv "$bin" release/"$(basename "$bin"|sed 's|squashfuse|squashfuse-musl|')"
+      #       done
 
       - name: Build x86_64 glibc
         run: |
