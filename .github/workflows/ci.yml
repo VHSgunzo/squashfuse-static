@@ -33,7 +33,7 @@ jobs:
         run: |
             shopt -s extglob
             for bin in $(ls release/!(*glibc*|*musl*))
-                do mv "$bin" release/"$(basename "$bin"|sed 's|squashfuse|squashfuse-musl|')"
+                do sudo mv "$bin" release/"$(basename "$bin"|sed 's|squashfuse|squashfuse-musl|')"
             done
 
       - name: Build x86_64 glibc
@@ -48,7 +48,7 @@ jobs:
         run: |
             shopt -s extglob
             for bin in $(ls release/!(*glibc*|*musl*))
-                do mv "$bin" release/"$(basename "$bin"|sed 's|squashfuse|squashfuse-glibc|')"
+                do sudo mv "$bin" release/"$(basename "$bin"|sed 's|squashfuse|squashfuse-glibc|')"
             done
 
       - name: Release
