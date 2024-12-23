@@ -73,9 +73,9 @@ export LDFLAGS="$LDFLAGS -Wl,--gc-sections -Wl,--strip-all"
 echo "= build static deps"
 (export CC=gcc
 
-[ -d /usr/lib/x86_64-linux-gnu ] && \
-    libdir=/usr/lib/x86_64-linux-gnu/||\
-    libdir=/usr/lib/
+[ -d "/usr/lib/$platform_arch-linux-gnu" ] && \
+    libdir="/usr/lib/$platform_arch-linux-gnu/"||\
+    libdir="/usr/lib/"
 
 echo "= build lzma lib"
 (git clone https://git.tukaani.org/xz.git && cd xz
