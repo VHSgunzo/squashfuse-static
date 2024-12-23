@@ -20,10 +20,16 @@ if [ "$platform" == "Linux" ]
         exit 1
 fi
 
-if [ -x "$(which apk 2>/dev/null)" ]
+if [ -x "$(which apt 2>/dev/null)" ]
+    then
+        apt update && apt install -y \
+            build-essential clang pkg-config git fuse3 po4a meson ninja-build \
+            libzstd-dev liblz4-dev liblzo2-dev liblzma-dev zlib1g-dev \
+            libfuse3-dev libsquashfuse-dev autoconf libtool upx wget autopoint
+elif [ -x "$(which apk 2>/dev/null)" ]
     then
         apk add musl-dev gcc clang git gettext-dev automake po4a cmake linux-headers \
-            autoconf libtool help2man patch make zstd-dev lz4-dev upx \
+            autoconf libtool help2man make zstd-dev lz4-dev upx \
             zlib-dev lzo-dev xz-dev sed findutils fuse3-dev meson ninja-build
 fi
 
@@ -67,34 +73,38 @@ export LDFLAGS="$LDFLAGS -Wl,--gc-sections -Wl,--strip-all"
 echo "= build static deps"
 (export CC=gcc
 
+[ -d /usr/lib/x86_64-linux-gnu ] && \
+    libdir=/usr/lib/x86_64-linux-gnu/||\
+    libdir=/usr/lib/
+
 echo "= build lzma lib"
 (git clone https://git.tukaani.org/xz.git && cd xz
 ./autogen.sh
 ./configure --enable-static --disable-shared
 make
-mv -fv src/liblzma/.libs/liblzma.a /usr/lib/)
+mv -fv src/liblzma/.libs/liblzma.a $libdir)
 
 echo "= build lzo2 lib"
 (git clone https://github.com/nemequ/lzo.git && cd lzo
 ./configure --enable-static --disable-shared
 make
-mv -fv src/.libs/liblzo2.a /usr/lib/)
+mv -fv src/.libs/liblzo2.a $libdir)
 
 echo "= build zlib lib"
 (git clone https://github.com/madler/zlib.git  && cd zlib
 ./configure
 make libz.a
-mv -fv libz.a /usr/lib/)
+mv -fv libz.a $libdir)
 
 echo "= build lz4 lib"
 (git clone https://github.com/lz4/lz4.git && cd lz4
 make liblz4.a
-mv -fv lib/liblz4.a /usr/lib/)
+mv -fv lib/liblz4.a $libdir)
 
 echo "= build zstd lib"
 (git clone https://github.com/facebook/zstd.git && cd zstd/lib
 make libzstd.a
-mv -fv libzstd.a /usr/lib/)
+mv -fv libzstd.a $libdir)
 
 echo "= build fuse lib"
 (git clone https://github.com/libfuse/libfuse.git && cd libfuse
@@ -103,7 +113,7 @@ mkdir build && cd build
 export CC=clang
 meson setup .. --default-library=static
 ninja
-mv -fv lib/libfuse3.a /usr/lib/))
+mv -fv lib/libfuse3.a $libdir))
 
 echo "= download squashfuse"
 git clone https://github.com/vasi/squashfuse.git
