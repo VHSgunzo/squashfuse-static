@@ -28,14 +28,14 @@ if [ -x "$(which apt 2>/dev/null)" ]
         export DEBIAN_FRONTEND=noninteractive
         apt update && apt install --yes --quiet \
             --option Dpkg::Options::=--force-confold --option Dpkg::Options::=--force-confdef \
-            build-essential clang pkg-config git fuse3 po4a meson ninja-build \
+            build-essential pkg-config git fuse3 po4a meson ninja-build \
             libzstd-dev liblz4-dev liblzo2-dev liblzma-dev zlib1g-dev \
             libfuse3-dev libsquashfuse-dev autoconf libtool upx wget autopoint
 elif [ -x "$(which apk 2>/dev/null)" ]
     then
-        build_libc='-musl'
-        apk add musl-dev gcc clang git gettext-dev automake po4a cmake linux-headers \
-            autoconf libtool help2man make zstd-dev lz4-dev upx \
+        build_libc='-musl-mimalloc'
+        apk add musl-dev gcc git gettext-dev automake po4a cmake linux-headers \
+            autoconf libtool help2man make zstd-dev lz4-dev upx g++ \
             zlib-dev lzo-dev xz-dev sed findutils fuse3-dev meson ninja-build
 fi
 
@@ -75,11 +75,21 @@ mkdir -p release
 
 export CFLAGS="$CFLAGS -Os -g0 -ffunction-sections -fdata-sections -fvisibility=hidden -fmerge-all-constants"
 export LDFLAGS="$LDFLAGS -Wl,--gc-sections -Wl,--strip-all"
+export CC=gcc
+
+if (echo "$build_libc"|grep -qo mimalloc)
+    then
+        echo "= build mimalloc lib"
+        (git clone https://github.com/microsoft/mimalloc.git && cd mimalloc
+        mkdir build && cd build
+        cmake .. && make mimalloc-static
+        mv -fv libmimalloc.a /usr/lib/)
+
+        export CFLAGS="$CFLAGS -lmimalloc"
+fi
 
 echo "= build static deps"
-(export CC=gcc
-
-[ -d "/usr/lib/$platform_arch-linux-gnu" ] && \
+([ -d "/usr/lib/$platform_arch-linux-gnu" ] && \
     libdir="/usr/lib/$platform_arch-linux-gnu/"||\
     libdir="/usr/lib/"
 
@@ -116,7 +126,6 @@ echo "= build fuse lib"
 (git clone https://github.com/libfuse/libfuse.git && cd libfuse
 git checkout fuse-3.16.2
 mkdir build && cd build
-export CC=clang
 meson setup .. --default-library=static
 ninja
 mv -fv lib/libfuse3.a $libdir))
@@ -130,7 +139,6 @@ echo "= squashfuse v${squashfuse_version}"
 
 echo "= build squashfuse"
 (cd "${squashfuse_dir}"
-export CC=gcc
 ./autogen.sh
 ./configure
 make DESTDIR="${squashfuse_dir}/install" LDFLAGS="$LDFLAGS" install)
@@ -153,7 +161,7 @@ if [[ "$WITH_UPX" == 1 && -x "$(which upx 2>/dev/null)" ]]
     then
         echo "= upx compressing"
         find release -name "*-${platform_arch}"|\
-        xargs -I {} upx --force-overwrite -9 --best {} -o {}-upx
+        xargs -I {} upx --force-overwrite {} -o {}-upx
 fi
 
 if [ "$NO_CLEANUP" != 1 ]

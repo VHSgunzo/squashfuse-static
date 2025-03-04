@@ -1,6 +1,6 @@
 # squashfuse-static
 
-Statically linked [squashfuse](https://github.com/vasi/squashfuse) compiled with musl and glibc
+Statically linked [squashfuse](https://github.com/vasi/squashfuse) compiled with musl and [mimalloc](https://github.com/microsoft/mimalloc) and glibc
 
 ## To get started:
 * **Download the latest revision**
