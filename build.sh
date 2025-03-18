@@ -36,7 +36,8 @@ elif [ -x "$(which apk 2>/dev/null)" ]
         build_libc='-musl-mimalloc'
         apk add musl-dev gcc git gettext-dev automake po4a cmake linux-headers \
             autoconf libtool help2man make zstd-dev lz4-dev upx g++ \
-            zlib-dev lzo-dev xz-dev sed findutils fuse3-dev meson ninja-build
+            zlib-dev lzo-dev xz-dev sed findutils fuse3-dev meson ninja-build # \
+            # mimalloc-dev
 fi
 
 if [ "$WITH_UPX" == 1 ]
@@ -81,9 +82,21 @@ if (echo "$build_libc"|grep -qo mimalloc)
     then
         echo "= build mimalloc lib"
         (git clone https://github.com/microsoft/mimalloc.git && cd mimalloc
+        git checkout v2.1.7
         mkdir build && cd build
-        cmake .. && make mimalloc-static
+        (export CFLAGS="$CFLAGS -D__USE_ISOC11"
+        cmake .. \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DMI_BUILD_OBJECT=OFF \
+            -DMI_BUILD_TESTS=OFF \
+            -DMI_LIBC_MUSL=ON \
+            -DMI_SECURE=OFF \
+            -DMI_SKIP_COLLECT_ON_EXIT=ON && \
+        make mimalloc-static)
         mv -fv libmimalloc.a /usr/lib/)
+#         for lib in /usr/lib/libmimalloc.*
+#             do ln -vsf "$(echo "$lib"|sed 's|libmimalloc|libmimalloc-insecure|')" "$lib"
+#         done
 
         export CFLAGS="$CFLAGS -lmimalloc"
 fi
