@@ -137,9 +137,9 @@ mv -fv libzstd.a $libdir)
 
 echo "= build fuse lib"
 (git clone https://github.com/libfuse/libfuse.git && cd libfuse
-git checkout fuse-3.16.2
+git checkout fuse-3.17.2
 mkdir build && cd build
-meson setup .. --default-library=static
+meson setup .. --default-library=static -Dexamples=false
 ninja
 mv -fv lib/libfuse3.a $libdir))
 
