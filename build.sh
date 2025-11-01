@@ -93,7 +93,7 @@ if (echo "$build_libc"|grep -qo mimalloc)
             -DMI_SECURE=OFF \
             -DMI_SKIP_COLLECT_ON_EXIT=ON && \
         make mimalloc-static)
-        mv -fv libmimalloc.a /usr/lib/)
+        cp -fv libmimalloc.a /usr/lib/)
 #         for lib in /usr/lib/libmimalloc.*
 #             do ln -vsf "$(echo "$lib"|sed 's|libmimalloc|libmimalloc-insecure|')" "$lib"
 #         done
@@ -111,37 +111,37 @@ echo "= build lzma lib"
 ./autogen.sh
 ./configure --enable-static --disable-shared
 make
-mv -fv src/liblzma/.libs/liblzma.a $libdir)
+cp -fv src/liblzma/.libs/liblzma.a $libdir)
 
 echo "= build lzo2 lib"
 (git clone https://github.com/nemequ/lzo.git && cd lzo
 ./configure --enable-static --disable-shared
 make
-mv -fv src/.libs/liblzo2.a $libdir)
+cp -fv src/.libs/liblzo2.a $libdir)
 
 echo "= build zlib lib"
 (git clone https://github.com/madler/zlib.git  && cd zlib
 ./configure
 make libz.a
-mv -fv libz.a $libdir)
+cp -fv libz.a $libdir)
 
 echo "= build lz4 lib"
 (git clone https://github.com/lz4/lz4.git && cd lz4
 make liblz4.a
-mv -fv lib/liblz4.a $libdir)
+cp -fv lib/liblz4.a $libdir)
 
 echo "= build zstd lib"
 (git clone https://github.com/facebook/zstd.git && cd zstd/lib
 make libzstd.a
-mv -fv libzstd.a $libdir)
+cp -fv libzstd.a $libdir)
 
 echo "= build fuse lib"
 (git clone https://github.com/libfuse/libfuse.git && cd libfuse
-git checkout fuse-3.17.2
+git checkout fuse-3.17.4
 mkdir build && cd build
 meson setup .. --default-library=static -Dexamples=false
 ninja
-mv -fv lib/libfuse3.a $libdir))
+cp -fv lib/libfuse3.a $libdir))
 
 echo "= download squashfuse"
 git clone https://github.com/vasi/squashfuse.git
@@ -159,13 +159,13 @@ make DESTDIR="${squashfuse_dir}/install" LDFLAGS="$LDFLAGS" install)
 echo "= extracting squashfuse binaries and libraries"
 for bin in "${squashfuse_dir}"/install/usr/local/bin/*
     do [[ ! -L "$bin" && -f "$bin" ]] && \
-        mv -fv "$bin" "${HERE}"/release/"$(basename "${bin}")${build_libc}-${platform_arch}"
+        cp -fv "$bin" "${HERE}"/release/"$(basename "${bin}")${build_libc}-${platform_arch}"
 done)
 
 echo "= build super-strip"
 (cd build && git clone https://github.com/aunali1/super-strip.git && cd super-strip
 make
-mv -fv sstrip /usr/bin/)
+cp -fv sstrip /usr/bin/)
 
 echo "= super-strip release binaries"
 sstrip release/*-"${platform_arch}"
