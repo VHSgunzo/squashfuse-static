@@ -3,8 +3,23 @@ set -e
 HERE="$(dirname "$(readlink -f "$0")")"
 cd "$HERE"
 
+SQUASHFUSE_VERSION=0.6.1
+
+MIMALLOC_VERSION=2.1.7
+LIBFUSE_VERSION=3.18.2
+
+XZ_VERSION=git              # 5.8.2
+LZO_VERSION=git             # no tags
+ZLIB_VERSION=git            # 1.3.2
+LZ4_VERSION=git             # 1.10.0
+ZSTD_VERSION=git            # 1.5.7
+SUPER_STRIP_VERSION=git     # 3.0a
+
 WITH_UPX=1
 VENDOR_UPX=1
+UPX_VERSION=4.2.4
+
+# NO_CLEANUP=1
 
 platform="$(uname -s)"
 platform_arch="$(uname -m)"
@@ -44,15 +59,14 @@ if [ "$WITH_UPX" == 1 ]
     then
         if [[ "$VENDOR_UPX" == 1 || ! -x "$(which upx 2>/dev/null)" ]]
             then
-                upx_ver=4.2.4
                 case "$platform_arch" in
                    x86_64) upx_arch=amd64 ;;
                    aarch64) upx_arch=arm64 ;;
                 esac
-                wget https://github.com/upx/upx/releases/download/v${upx_ver}/upx-${upx_ver}-${upx_arch}_linux.tar.xz
-                tar xvf upx-${upx_ver}-${upx_arch}_linux.tar.xz
-                mv upx-${upx_ver}-${upx_arch}_linux/upx /usr/bin/
-                rm -rf upx-${upx_ver}-${upx_arch}_linux*
+                wget https://github.com/upx/upx/releases/download/v${UPX_VERSION}/upx-${UPX_VERSION}-${upx_arch}_linux.tar.xz
+                tar xvf upx-${UPX_VERSION}-${upx_arch}_linux.tar.xz
+                mv upx-${UPX_VERSION}-${upx_arch}_linux/upx /usr/bin/
+                rm -rf upx-${UPX_VERSION}-${upx_arch}_linux*
         fi
 fi
 
@@ -82,7 +96,7 @@ if (echo "$build_libc"|grep -qo mimalloc)
     then
         echo "= build mimalloc lib"
         (git clone https://github.com/microsoft/mimalloc.git && cd mimalloc
-        git checkout v2.1.7
+        [ "$MIMALLOC_VERSION" == 'git' ] || git checkout "v$MIMALLOC_VERSION"
         mkdir build && cd build
         (export CFLAGS="$CFLAGS -D__USE_ISOC11"
         cmake .. \
@@ -108,6 +122,7 @@ echo "= build static deps"
 
 echo "= build lzma lib"
 (git clone https://git.tukaani.org/xz.git && cd xz
+[ "$XZ_VERSION" == 'git' ] || git checkout "v$XZ_VERSION"
 ./autogen.sh
 ./configure --enable-static --disable-shared
 make
@@ -115,29 +130,33 @@ cp -fv src/liblzma/.libs/liblzma.a $libdir)
 
 echo "= build lzo2 lib"
 (git clone https://github.com/nemequ/lzo.git && cd lzo
+[ "$LZO_VERSION" == 'git' ] || git checkout "$LZO_VERSION"
 ./configure --enable-static --disable-shared
 make
 cp -fv src/.libs/liblzo2.a $libdir)
 
 echo "= build zlib lib"
 (git clone https://github.com/madler/zlib.git  && cd zlib
+[ "$ZLIB_VERSION" == 'git' ] || git checkout "v$ZLIB_VERSION"
 ./configure
 make libz.a
 cp -fv libz.a $libdir)
 
 echo "= build lz4 lib"
 (git clone https://github.com/lz4/lz4.git && cd lz4
+[ "$LZ4_VERSION" == 'git' ] || git checkout "v$LZ4_VERSION"
 make liblz4.a
 cp -fv lib/liblz4.a $libdir)
 
 echo "= build zstd lib"
 (git clone https://github.com/facebook/zstd.git && cd zstd/lib
+[ "$ZSTD_VERSION" == 'git' ] || git checkout "v$ZSTD_VERSION"
 make libzstd.a
 cp -fv libzstd.a $libdir)
 
 echo "= build fuse lib"
 (git clone https://github.com/libfuse/libfuse.git && cd libfuse
-git checkout fuse-3.17.4
+[ "$FUSE_VERSION" == 'git' ] || git checkout "fuse-$LIBFUSE_VERSION"
 mkdir build && cd build
 meson setup .. --default-library=static -Dexamples=false
 ninja
@@ -152,6 +171,7 @@ echo "= squashfuse v${squashfuse_version}"
 
 echo "= build squashfuse"
 (cd "${squashfuse_dir}"
+[ "$SQUASHFUSE_VERSION" == 'git' ] || git checkout "$SQUASHFUSE_VERSION"
 ./autogen.sh
 ./configure
 make DESTDIR="${squashfuse_dir}/install" LDFLAGS="$LDFLAGS" install)
@@ -164,6 +184,7 @@ done)
 
 echo "= build super-strip"
 (cd build && git clone https://github.com/aunali1/super-strip.git && cd super-strip
+[ "$SUPER_STRIP_VERSION" == 'git' ] || git checkout "$SUPER_STRIP_VERSION"
 make
 cp -fv sstrip /usr/bin/)
 
