@@ -3,7 +3,7 @@ set -e
 HERE="$(dirname "$(readlink -f "$0")")"
 cd "$HERE"
 
-SQUASHFUSE_VERSION=0.6.1
+SQUASHFUSE_VERSION=0.6.2
 
 MIMALLOC_VERSION=2.1.7
 LIBFUSE_VERSION=3.18.2
