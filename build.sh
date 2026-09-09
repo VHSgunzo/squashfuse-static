@@ -23,6 +23,7 @@ LZO_COMMIT=0083878c235a89ef96a009d1ff0b500f3a364e4b # no tags
 ZLIB_COMMIT=e3dc0a85b7032e98380dec011bc8f2c2ee0d8fca # 1.3.2
 LZ4_COMMIT=0774d05537f9762f838f7ab541b7765f1a729cb5 # 1.10.0
 ZSTD_COMMIT=d9c0c7e2cf8a8bf9fb98d3bee546dcf8dc9ac59a # 1.5.7
+SUPER_STRIP_COMMIT=9c57e288d8b2e0f90c9a15a4223331d1e7b43515 # master after 3.0a
 NO_CLEANUP=${NO_CLEANUP:-0}
 
 [ "$(uname -s)" = Linux ] || { printf '%s\n' '= Linux is required for static binaries' >&2; exit 1; }
@@ -106,6 +107,13 @@ EOF
 export MESON_CROSS_FILE
 cd "$work"
 
+echo '= build pinned host super-strip'
+git clone https://github.com/aunali1/super-strip.git
+(cd super-strip; checkout_pinned_source . "$SUPER_STRIP_COMMIT"; \
+    make CC="$BUILD_CC" AR=ar RANLIB=ranlib CFLAGS='-O2 -Ielfrw' CPPFLAGS= LDFLAGS=)
+SSTRIP=$work/super-strip/sstrip
+[ -x "$SSTRIP" ] || { printf '%s\n' 'host sstrip build did not produce an executable' >&2; exit 1; }
+
 echo '= build pinned mimalloc'
 git clone https://github.com/microsoft/mimalloc.git
 (cd mimalloc; checkout_pinned_source . "$MIMALLOC_COMMIT"; cmake -S . -B build \
@@ -138,12 +146,22 @@ echo "= build pinned squashfuse ${SQUASHFUSE_VERSION}"
 git clone https://github.com/vasi/squashfuse.git
 (cd squashfuse; checkout_pinned_source . "$SQUASHFUSE_COMMIT"; autoreconf -fi; \
     PKG_CONFIG='pkg-config --static' ./configure --build="$BUILD_TRIPLET" --host="$TARGET_TRIPLET" --prefix="$BUILD_PREFIX" --enable-static --disable-shared \
-        LDFLAGS="$LDFLAGS -Wl,--whole-archive,$BUILD_PREFIX/lib/libmimalloc.a,--no-whole-archive"; \
-    make; make DESTDIR="$work/install" install)
+        LIBS="-lmimalloc"; \
+    make V=1 >"$work/squashfuse-link.log" 2>&1 || { cat "$work/squashfuse-link.log"; exit 1; }; \
+    cat "$work/squashfuse-link.log"; verify_mimalloc_link_log "$work/squashfuse-link.log"; \
+    make DESTDIR="$work/install" install)
 first_name=squashfuse-musl-mimalloc-$TARGET_ARCH
 second_name=squashfuse_ll-musl-mimalloc-$TARGET_ARCH
 install_release_binary "$work/install$BUILD_PREFIX/bin/squashfuse" "$staged_release" "$first_name"
 install_release_binary "$work/install$BUILD_PREFIX/bin/squashfuse_ll" "$staged_release" "$second_name"
+for staged_name in "$first_name" "$second_name"
+do
+    staged_binary=$staged_release/$staged_name
+    before_size=$(wc -c <"$staged_binary")
+    "$SSTRIP" "$staged_binary"
+    after_size=$(wc -c <"$staged_binary")
+    printf '= sstrip %s: %s -> %s bytes\n' "$staged_name" "$before_size" "$after_size"
+done
 RELEASE_DIR=$staged_release "$HERE/scripts/validate-artifacts.sh" "$TARGET_ARCH"
 publish_release_pair \
     "$staged_release/$first_name" "$first_name" \

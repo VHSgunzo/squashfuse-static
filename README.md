@@ -36,14 +36,14 @@ The matrix mapping is exact:
 | `ppc64` | `linux/amd64` | genuine `powerpc64-linux-musl` cross-toolchain |
 | `ppc64le` | `linux/ppc64le` | QEMU/native container |
 
-Each selected musl target builds and validates both outputs under its target work directory before publishing them as a pair. Pair publication stages adjacent temporary files, backs up any previous pair, and rolls back the first rename if the second rename or a signal interrupts the transaction. A failed or interrupted musl target build leaves its previously published pair unchanged; obsolete `-upx` files are removed only after the normal pair is replaced successfully. Every other target's outputs are preserved:
+Each selected musl target builds and validates both outputs under its target work directory before publishing them as a pair. Every binary is explicit static PIE (`ET_DYN`), has no interpreter or dynamic dependencies, and is processed by pinned `sstrip` while still staged so it publishes with zero section headers. Pair publication stages adjacent temporary files, backs up any previous pair, and rolls back the first rename if the second rename or a signal interrupts the transaction. A failed or interrupted musl target build leaves its previously published pair unchanged; obsolete `-upx` files are removed only after the normal pair is replaced successfully. Every other target's outputs are preserved:
 
 ```text
 release/squashfuse-musl-mimalloc-ARCH
 release/squashfuse_ll-musl-mimalloc-ARCH
 ```
 
-The musl build uses a target-isolated prefix under `build/sysroot/ARCH`; target pkg-config lookup does not include host `/usr/lib`. The `ppc64` build compiles mimalloc through a CMake toolchain, libfuse through a Meson cross file, all compression libraries with target tools, and squashfuse with distinct Autotools `--build` and `--host` triplets. `ppc64` is big-endian and is validated separately from little-endian `ppc64le`.
+The musl build uses a target-isolated prefix under `build/sysroot/ARCH`; target pkg-config lookup does not include host `/usr/lib`. Squashfuse receives mimalloc through normal final `-lmimalloc` linkage (`LIBS`), never `--whole-archive`; verbose final links and an allocator-specific binary marker are both verified. The `ppc64` build compiles mimalloc through a CMake toolchain, libfuse through a Meson cross file, all compression libraries with target tools, and squashfuse with distinct Autotools `--build` and `--host` triplets. `ppc64` is big-endian and is validated separately from little-endian `ppc64le`.
 
 Same-target musl builds are serialized by a per-target lock in `release/`; different targets can proceed independently. Each canonical lock is atomically hard-linked from an adjacent private file that already contains its owner, so observers never see an empty lock. Normal exits and handled signals remove the canonical lock and private file. If the process is killed without running traps, remove a stale lock only after confirming that no build for that target is still running.
 
@@ -61,10 +61,11 @@ Direct `build.sh` use defaults `TARGET_ARCH` to `uname -m`. On Alpine it creates
 | zlib | 1.3.2 | `e3dc0a85b7032e98380dec011bc8f2c2ee0d8fca` |
 | LZ4 | 1.10.0 | `0774d05537f9762f838f7ab541b7765f1a729cb5` |
 | Zstandard | 1.5.7 | `d9c0c7e2cf8a8bf9fb98d3bee546dcf8dc9ac59a` |
+| super-strip | master after 3.0a | `9c57e288d8b2e0f90c9a15a4223331d1e7b43515` |
 
-These pinning and reproducibility qualifications apply to the musl matrix only; the delegated direct glibc path remains outside this guarantee. Musl source checkout is detached and verifies exact `HEAD`. OCI images, GitHub Actions, the QEMU binfmt image, and the `ppc64` toolchain archive/checksum are pinned. Alpine package repository contents and toolchain package revisions are not frozen: `apk add` resolves live repository state. The musl builds therefore are not guaranteed to be byte-identical across time.
+These pinning and reproducibility qualifications apply to the musl matrix only; the delegated direct glibc path remains outside this guarantee. Musl source checkout is detached and verifies exact `HEAD`. Normal targets use the Alpine 3.24.1 multiarch index pinned as `docker.io/library/alpine:3.24@sha256:28bd5fe8b56d1bd048e5babf5b10710ebe0bae67db86916198a6eec434943f8b`, matching the current legacy `alpine:latest` behavior without allowing the image to drift. OCI images, GitHub Actions, the QEMU binfmt image, and the `ppc64` toolchain archive/checksum are pinned. Alpine package repository contents and toolchain package revisions are not frozen: `apk add` resolves live repository state. The musl builds therefore are not guaranteed to be byte-identical across time.
 
-UPX and host `sstrip` are not used. Normal outputs are uncompressed static ELF files.
+UPX is not used or required. The pinned super-strip source is compiled with the build-host compiler and required for every staged musl output.
 
 ## Verify
 
@@ -74,7 +75,7 @@ for test in tests/*.sh; do sh "$test"; done
 ./scripts/smoke-test.sh ARCH
 ```
 
-Validation requires a nonzero executable ELF64 with the exact machine and endianness and rejects both `PT_INTERP` and `DT_NEEDED`. The smoke test executes each binary natively or under the matching QEMU, requires the exact squashfuse 0.6.3 identity line, and recognizes squashfuse's documented nonzero usage exits (`254` and `2`). Foreign tests are version/parser checks; they never claim a FUSE mount passed. On native x86_64, a real read-through mount is attempted for both binaries only when `/dev/fuse` and all host tools are available; otherwise the output explicitly reports that the mount test was skipped. Fixture tests are self-contained and are not represented as real mounts.
+Validation requires a nonzero executable ELF64 static PIE (`ET_DYN`) with the exact machine and endianness, zero section headers after `sstrip`, mimalloc evidence, and neither `PT_INTERP` nor `DT_NEEDED`. The smoke test executes each binary natively or under the matching QEMU, requires the exact squashfuse 0.6.3 identity line, and recognizes squashfuse's documented nonzero usage exits (`254` and `2`). Foreign tests are version/parser checks; they never claim a FUSE mount passed. On native x86_64, a real read-through mount is attempted for both binaries only when `/dev/fuse` and all host tools are available; otherwise the output explicitly reports that the mount test was skipped. Fixture tests are self-contained and are not represented as real mounts.
 
 ## Release safety
 

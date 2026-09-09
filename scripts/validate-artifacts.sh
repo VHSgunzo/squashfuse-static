@@ -34,6 +34,15 @@ do
         printf '%s: expected ELF64 %s %s endian\n' "$artifact" "$machine" "$endian" >&2
         exit 1
     fi
+    if ! printf '%s\n' "$header" | grep -F 'Type:' | grep -E ':[[:space:]]+DYN([[:space:]]|$)' >/dev/null; then
+        printf '%s: expected static PIE ELF type ET_DYN\n' "$artifact" >&2
+        exit 1
+    fi
+    if ! printf '%s\n' "$header" | grep -F 'Start of section headers:' | grep -E ':[[:space:]]+0([[:space:]]|$)' >/dev/null ||
+       ! printf '%s\n' "$header" | grep -F 'Number of section headers:' | grep -E ':[[:space:]]+0([[:space:]]|$)' >/dev/null; then
+        printf '%s retains section headers; pinned sstrip processing is required\n' "$artifact" >&2
+        exit 1
+    fi
 
     if LC_ALL=C readelf -l "$artifact" | grep -E 'INTERP|Requesting program interpreter' >/dev/null; then
         printf '%s contains PT_INTERP and is not static\n' "$artifact" >&2
@@ -43,5 +52,9 @@ do
         printf '%s contains DT_NEEDED shared-library dependencies and is not static\n' "$artifact" >&2
         exit 1
     fi
-    printf '= validated %s: ELF64 %s %s endian, static\n' "$name" "$machine" "$endian"
+    if ! LC_ALL=C grep -aF 'mimalloc: warning:' "$artifact" >/dev/null; then
+        printf '%s contains no reliable mimalloc allocator evidence\n' "$artifact" >&2
+        exit 1
+    fi
+    printf '= validated %s: ELF64 %s %s endian, static PIE, sstripped, mimalloc\n' "$name" "$machine" "$endian"
 done

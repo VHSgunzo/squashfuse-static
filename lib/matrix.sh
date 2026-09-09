@@ -16,7 +16,7 @@ matrix_image()
 {
     validate_matrix_arch "$1" || return 1
     case $1 in loongarch64) printf '%s\n' 'docker.io/loongarch64/alpine:3.21@sha256:ba4698dc340db5079eea01b7ea3488452a9a1c3cb8aad11033ea2cc978f49ffc';;
-        *) printf '%s\n' 'docker.io/library/alpine:3.22@sha256:14358309a308569c32bdc37e2e0e9694be33a9d99e68afb0f5ff33cc1f695dce';; esac
+        *) printf '%s\n' 'docker.io/library/alpine:3.24@sha256:28bd5fe8b56d1bd048e5babf5b10710ebe0bae67db86916198a6eec434943f8b';; esac
 }
 matrix_build_mode() { validate_matrix_arch "$1" || return 1; case $1 in ppc64) printf '%s\n' cross-musl;; *) printf '%s\n' native-emulated;; esac; }
 elf_machine() { validate_matrix_arch "$1" || return 1; case $1 in x86_64) printf '%s\n' 'Advanced Micro Devices X86-64';; aarch64) printf '%s\n' AArch64;; riscv64) printf '%s\n' RISC-V;; loongarch64) printf '%s\n' LoongArch;; ppc64|ppc64le) printf '%s\n' PowerPC64;; esac; }

@@ -32,5 +32,6 @@ resolve_target_contract
 [ "$TARGET_TRIPLET" = powerpc64-linux-musl ] || fail 'contract did not refresh triplet'
 if env | grep -E '^TARGET_(ARCH|TRIPLET)=' >/dev/null; then fail 'target contract leaked to child'; fi
 printf 'ok - validation precedes side effects and contract variables remain local\n'
-if grep -E '(WITH_UPX|VENDOR_UPX|UPX_VERSION|super-strip|sstrip|upx --force-overwrite)' "$ROOT/build.sh" >/dev/null; then fail 'mandatory unsafe postprocessing remains'; fi
-printf 'ok - no UPX or host sstrip postprocessing\n'
+if grep -E '(WITH_UPX|VENDOR_UPX|UPX_VERSION|upx --force-overwrite)' "$ROOT/build.sh" >/dev/null; then fail 'UPX postprocessing remains'; fi
+grep -F 'make CC="$BUILD_CC"' "$ROOT/build.sh" >/dev/null || fail 'sstrip is not built for the host'
+printf 'ok - no UPX and sstrip uses the build-host compiler\n'

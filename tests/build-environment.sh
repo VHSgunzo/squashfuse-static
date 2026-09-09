@@ -39,12 +39,12 @@ configure_build_environment "$TMP/project"
 
 [ "$BUILD_PREFIX" = "$TMP/project/build/sysroot/ppc64" ] || fail 'target-specific build prefix'
 case $CFLAGS in
-    *-caller-cflag*"-I$BUILD_PREFIX/include"*-static*) ;;
-    *) fail "target include/static flags: $CFLAGS" ;;
+    *-caller-cflag*"-I$BUILD_PREFIX/include"*'-static-pie'*) ;;
+    *) fail "target include/static PIE flags: $CFLAGS" ;;
 esac
 case $LDFLAGS in
-    *-caller-ldflag*"-L$BUILD_PREFIX/lib"*--static*) ;;
-    *) fail "target library/static flags: $LDFLAGS" ;;
+    *-caller-ldflag*"-L$BUILD_PREFIX/lib"*'-Wl,-static -static-pie'*) ;;
+    *) fail "target library/static PIE flags: $LDFLAGS" ;;
 esac
 [ "$PKG_CONFIG_LIBDIR" = "$BUILD_PREFIX/lib/pkgconfig:$BUILD_PREFIX/share/pkgconfig" ] ||
     fail 'pkg-config is not isolated to target prefix'

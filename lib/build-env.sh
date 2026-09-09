@@ -28,10 +28,10 @@ configure_build_environment()
             ;;
     esac
 
-    CFLAGS="${CFLAGS:+$CFLAGS }-Os -g0 -ffunction-sections -fdata-sections -fvisibility=hidden -fmerge-all-constants -I$BUILD_PREFIX/include -static"
+    CFLAGS="${CFLAGS:+$CFLAGS }-Os -g0 -ffunction-sections -fdata-sections -fvisibility=hidden -fmerge-all-constants -I$BUILD_PREFIX/include -static-pie"
     CXXFLAGS="${CXXFLAGS:+$CXXFLAGS }$CFLAGS"
     CPPFLAGS="${CPPFLAGS:+$CPPFLAGS }-I$BUILD_PREFIX/include"
-    LDFLAGS="${LDFLAGS:+$LDFLAGS }-L$BUILD_PREFIX/lib --static -Wl,--gc-sections -Wl,--strip-all"
+    LDFLAGS="${LDFLAGS:+$LDFLAGS }-L$BUILD_PREFIX/lib -Wl,-static -static-pie -Wl,--gc-sections -Wl,--strip-all"
     PKG_CONFIG_LIBDIR=$BUILD_PREFIX/lib/pkgconfig:$BUILD_PREFIX/share/pkgconfig
     PKG_CONFIG_PATH=
 
@@ -60,4 +60,26 @@ validate_compiler_target()
             return 1
         fi
     fi
+}
+
+verify_mimalloc_link_log()
+{
+    link_log=$1
+    if grep -F -- '--whole-archive' "$link_log" >/dev/null; then
+        printf '%s\n' 'mimalloc link log contains forbidden --whole-archive' >&2
+        return 1
+    fi
+
+    for output in squashfuse squashfuse_ll
+    do
+        link_line=$(grep -E "(^|[[:space:]/])-o ([^[:space:]]*/)?${output}([[:space:]]|$)" "$link_log" |
+            grep -F -- '-lmimalloc' | tail -n 1) || {
+            printf 'no verbose %s link with -lmimalloc was found\n' "$output" >&2
+            return 1
+        }
+        case $link_line in
+            *'.o '*'-lmimalloc'*) ;;
+            *) printf '%s does not place -lmimalloc after objects\n' "$output" >&2; return 1 ;;
+        esac
+    done
 }
