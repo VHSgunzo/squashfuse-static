@@ -1,0 +1,81 @@
+#!/bin/sh
+
+resolve_target_arch()
+{
+    if [ -n "${TARGET_ARCH:-}" ]; then
+        printf '%s\n' "$TARGET_ARCH"
+    else
+        uname -m
+    fi
+}
+
+target_triplet()
+{
+    case $1 in
+        x86_64) printf '%s\n' x86_64-linux-musl ;;
+        aarch64) printf '%s\n' aarch64-linux-musl ;;
+        riscv64) printf '%s\n' riscv64-linux-musl ;;
+        loongarch64) printf '%s\n' loongarch64-linux-musl ;;
+        ppc64) printf '%s\n' powerpc64-linux-musl ;;
+        ppc64le) printf '%s\n' powerpc64le-linux-musl ;;
+        *)
+            printf "unsupported TARGET_ARCH '%s' (supported: x86_64, aarch64, riscv64, loongarch64, ppc64, ppc64le)\n" "$1" >&2
+            return 1
+            ;;
+    esac
+}
+
+target_glibc_triplet()
+{
+    case $1 in
+        x86_64) printf '%s\n' x86_64-linux-gnu ;;
+        aarch64) printf '%s\n' aarch64-linux-gnu ;;
+        riscv64) printf '%s\n' riscv64-linux-gnu ;;
+        loongarch64) printf '%s\n' loongarch64-linux-gnu ;;
+        ppc64) printf '%s\n' powerpc64-linux-gnu ;;
+        ppc64le) printf '%s\n' powerpc64le-linux-gnu ;;
+        *)
+            printf "unsupported TARGET_ARCH '%s' (supported: x86_64, aarch64, riscv64, loongarch64, ppc64, ppc64le)\n" "$1" >&2
+            return 1
+            ;;
+    esac
+}
+
+target_glibc_libdir()
+(
+    arch=$1
+    compiler=${2:-${CC:-gcc}}
+    fallback=$(target_glibc_triplet "$arch") || exit 1
+    compiler_multiarch=$("$compiler" -print-multiarch 2>/dev/null) || compiler_multiarch=
+
+    # Accept only the exact target multiarch name. This both sanitizes the path
+    # component and prevents a host compiler from selecting a host library tree.
+    if [ "$compiler_multiarch" = "$fallback" ]; then
+        multiarch=$compiler_multiarch
+    else
+        multiarch=$fallback
+    fi
+    printf '/usr/lib/%s\n' "$multiarch"
+)
+
+resolve_target_contract()
+{
+    TARGET_ARCH=$(resolve_target_arch) || return 1
+    TARGET_TRIPLET=$(target_triplet "$TARGET_ARCH") || return 1
+    set -- "$TARGET_ARCH" "$TARGET_TRIPLET"
+
+    # Keep public contract variables out of third-party build environments.
+    unset TARGET_ARCH TARGET_TRIPLET
+    TARGET_ARCH=$1
+    TARGET_TRIPLET=$2
+}
+
+validate_native_target()
+{
+    set -- "$(uname -m)" "$TARGET_ARCH"
+    if [ "$1" != "$2" ]; then
+        printf "TARGET_ARCH '%s' does not match build machine '%s'; this phase supports native/emulated builds only\n" \
+            "$2" "$1" >&2
+        return 1
+    fi
+}
