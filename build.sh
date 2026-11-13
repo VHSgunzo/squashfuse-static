@@ -14,14 +14,14 @@ resolve_target_contract
 validate_build_mode
 
 SQUASHFUSE_VERSION=0.6.5
-LIBFUSE_VERSION=3.18.2
+LIBFUSE_VERSION=3.18.3
 SQUASHFUSE_COMMIT=b3a880aacc63641c570f114ff8d45f221fc97d02 # 0.6.5
 MIMALLOC_COMMIT=8c532c32c3c96e5ba1f2283e032f69ead8add00f # 2.1.7
-LIBFUSE_COMMIT=033844748010a3b8265bf1c90b9ae8ffe4cd9ca7 # 3.18.2
-XZ_COMMIT=9fc6f5cd8774ebef8d4e030f7081fb6984c0dc3f # 5.8.2
+LIBFUSE_COMMIT=3dbcfce64ba0dd529cec7b94305662e7901a991b # 3.18.3
+XZ_COMMIT=d3e650e63c110e830fd5391e7f8b45df0b91d3da # 5.8.4
 LZO_COMMIT=0083878c235a89ef96a009d1ff0b500f3a364e4b # no tags
-ZLIB_COMMIT=e3dc0a85b7032e98380dec011bc8f2c2ee0d8fca # 1.3.2
-LZ4_COMMIT=0774d05537f9762f838f7ab541b7765f1a729cb5 # 1.10.0
+ZLIB_COMMIT=99623ef7097352da7993ba614161fd6a311e046e # 1.4
+LZ4_COMMIT=aa4647fad575d01a874aaaadcdbe8e6a40e072f5 # 1.11.1
 ZSTD_COMMIT=d9c0c7e2cf8a8bf9fb98d3bee546dcf8dc9ac59a # 1.5.7
 SUPER_STRIP_COMMIT=9c57e288d8b2e0f90c9a15a4223331d1e7b43515 # master after 3.0a
 NO_CLEANUP=${NO_CLEANUP:-0}
@@ -134,7 +134,7 @@ git clone https://github.com/lz4/lz4.git
 (cd lz4; checkout_pinned_source . "$LZ4_COMMIT"; make -C lib CC="$CC" AR="$AR" RANLIB="$RANLIB" liblz4.a; \
     cp lib/liblz4.a "$BUILD_PREFIX/lib/"; \
     cp lib/lz4.h lib/lz4frame.h lib/lz4frame_static.h lib/lz4hc.h "$BUILD_PREFIX/include/"; \
-    { printf 'prefix=%s\n' "$BUILD_PREFIX"; printf '%s\n' 'libdir=${prefix}/lib' 'includedir=${prefix}/include' '' 'Name: liblz4' 'Description: fast lossless compression algorithm library' 'Version: 1.10.0' 'Libs: -L${libdir} -llz4' 'Cflags: -I${includedir}'; } >"$BUILD_PREFIX/lib/pkgconfig/liblz4.pc")
+    { printf 'prefix=%s\n' "$BUILD_PREFIX"; printf '%s\n' 'libdir=${prefix}/lib' 'includedir=${prefix}/include' '' 'Name: liblz4' 'Description: fast lossless compression algorithm library' 'Version: 1.11.1' 'Libs: -L${libdir} -llz4' 'Cflags: -I${includedir}'; } >"$BUILD_PREFIX/lib/pkgconfig/liblz4.pc")
 git clone https://github.com/facebook/zstd.git
 (cd zstd; checkout_pinned_source . "$ZSTD_COMMIT"; make -C lib CC="$CC" CXX="$CXX" AR="$AR" RANLIB="$RANLIB" libzstd.a; make -C lib PREFIX="$BUILD_PREFIX" install-static install-includes)
 

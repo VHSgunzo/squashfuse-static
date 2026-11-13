@@ -55,11 +55,11 @@ Direct `build.sh` use defaults `TARGET_ARCH` to `uname -m`. On Alpine it creates
 | --- | --- | --- |
 | squashfuse | 0.6.5 | `b3a880aacc63641c570f114ff8d45f221fc97d02` |
 | mimalloc | 2.1.7 | `8c532c32c3c96e5ba1f2283e032f69ead8add00f` |
-| libfuse | 3.18.2 | `033844748010a3b8265bf1c90b9ae8ffe4cd9ca7` |
-| XZ | 5.8.2 | `9fc6f5cd8774ebef8d4e030f7081fb6984c0dc3f` |
+| libfuse | 3.18.3 | `3dbcfce64ba0dd529cec7b94305662e7901a991b` |
+| XZ | 5.8.4 | `d3e650e63c110e830fd5391e7f8b45df0b91d3da` |
 | LZO | upstream no-tag revision | `0083878c235a89ef96a009d1ff0b500f3a364e4b` |
-| zlib | 1.3.2 | `e3dc0a85b7032e98380dec011bc8f2c2ee0d8fca` |
-| LZ4 | 1.10.0 | `0774d05537f9762f838f7ab541b7765f1a729cb5` |
+| zlib | 1.4 | `99623ef7097352da7993ba614161fd6a311e046e` |
+| LZ4 | 1.11.1 | `aa4647fad575d01a874aaaadcdbe8e6a40e072f5` |
 | Zstandard | 1.5.7 | `d9c0c7e2cf8a8bf9fb98d3bee546dcf8dc9ac59a` |
 | super-strip | master after 3.0a | `9c57e288d8b2e0f90c9a15a4223331d1e7b43515` |
 

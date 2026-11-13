@@ -15,12 +15,12 @@ validate_native_target
 SQUASHFUSE_VERSION=0.6.5
 
 MIMALLOC_VERSION=2.1.7
-LIBFUSE_VERSION=3.18.2
+LIBFUSE_VERSION=3.18.3
 
-XZ_VERSION=git              # 5.8.2
+XZ_VERSION=git              # 5.8.4
 LZO_VERSION=git             # no tags
-ZLIB_VERSION=git            # 1.3.2
-LZ4_VERSION=git             # 1.10.0
+ZLIB_VERSION=git            # 1.4
+LZ4_VERSION=git             # 1.11.1
 ZSTD_VERSION=git            # 1.5.7
 
 NO_CLEANUP=${NO_CLEANUP:-0}
