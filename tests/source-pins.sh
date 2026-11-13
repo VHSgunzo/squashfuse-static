@@ -4,6 +4,14 @@ set -eu
 ROOT=$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd)
 BUILD=$ROOT/build.sh
 
+for script in "$BUILD" "$ROOT/scripts/build-glibc.sh"
+do
+    grep -F 'git clone https://github.com/tukaani-project/xz.git' "$script" >/dev/null || {
+        printf 'not ok - %s must use the upstream XZ GitHub repository\n' "$script" >&2
+        exit 1
+    }
+done
+
 fail()
 {
     printf 'not ok - %s\n' "$1" >&2

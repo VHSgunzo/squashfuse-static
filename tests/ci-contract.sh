@@ -13,6 +13,8 @@ fail()
 [ -r "$WORKFLOW" ] || fail 'CI workflow is missing'
 
 grep -F 'workflow_dispatch:' "$WORKFLOW" >/dev/null || fail 'workflow_dispatch is missing'
+grep -A 3 '^  build:' "$WORKFLOW" | grep -F 'runs-on: ubuntu-24.04' >/dev/null ||
+    fail 'build runner must provide the required qemu-user-static package'
 grep -F 'fail-fast: false' "$WORKFLOW" >/dev/null || fail 'matrix fail-fast is not false'
 grep -F 'arch: [x86_64, aarch64, riscv64, loongarch64, ppc64, ppc64le]' "$WORKFLOW" >/dev/null ||
     fail 'CI matrix is not the exact six-architecture list'

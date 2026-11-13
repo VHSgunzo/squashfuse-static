@@ -124,7 +124,7 @@ git clone https://github.com/microsoft/mimalloc.git
     cmake --build build --target mimalloc-static; cp build/libmimalloc.a "$BUILD_PREFIX/lib/"; cp -R include/. "$BUILD_PREFIX/include/")
 
 echo '= build pinned compression libraries'
-git clone https://git.tukaani.org/xz.git
+git clone https://github.com/tukaani-project/xz.git
 (cd xz; checkout_pinned_source . "$XZ_COMMIT"; ./autogen.sh; ./configure --build="$BUILD_TRIPLET" --host="$TARGET_TRIPLET" --prefix="$BUILD_PREFIX" --enable-static --disable-shared --disable-doc; make; make install)
 git clone https://github.com/nemequ/lzo.git
 (cd lzo; checkout_pinned_source . "$LZO_COMMIT"; autoreconf -fi; ./configure --build="$BUILD_TRIPLET" --host="$TARGET_TRIPLET" --prefix="$BUILD_PREFIX" --enable-static --disable-shared; make; make install)

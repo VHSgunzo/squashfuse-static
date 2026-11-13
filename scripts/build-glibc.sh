@@ -128,7 +128,7 @@ echo "= build static deps"
 (
 
 echo "= build lzma lib"
-(git clone https://git.tukaani.org/xz.git && cd xz
+(git clone https://github.com/tukaani-project/xz.git && cd xz
 [ "$XZ_VERSION" = git ] || git checkout "v$XZ_VERSION"
 ./autogen.sh
 ./configure --enable-static --disable-shared
