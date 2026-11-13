@@ -25,8 +25,8 @@ for binary in squashfuse squashfuse_ll; do
         *) printf '%s --version returned %s, expected usage exit\n' "$artifact" "$status" >&2; exit 1;;
     esac
     first_line=$(printf '%s\n' "$output" | sed -n '1p')
-    [ "$first_line" = 'squashfuse 0.6.3 (c) 2012 Dave Vasilevsky' ] || {
-        printf '%s did not report exact squashfuse 0.6.3 identity: %s\n' "$artifact" "$first_line" >&2; exit 1; }
+    [ "$first_line" = 'squashfuse 0.6.5 (c) 2012 Dave Vasilevsky' ] || {
+        printf '%s did not report exact squashfuse 0.6.5 identity: %s\n' "$artifact" "$first_line" >&2; exit 1; }
     printf '%s\n' "$output" | grep -F 'Usage:' >/dev/null || { printf '%s did not reach its argument parser\n' "$artifact" >&2; exit 1; }
 done
 printf '= version/parser smoke passed for %s\n' "$arch"

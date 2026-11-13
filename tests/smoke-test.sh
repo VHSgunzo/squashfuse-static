@@ -10,7 +10,7 @@ printf '%s\n' '#!/bin/sh' 'exit 0' >"$FIXTURE/scripts/validate-artifacts.sh"
 for binary in squashfuse squashfuse_ll; do
 cat >"$FIXTURE/release/$binary-musl-mimalloc-x86_64" <<'EOF'
 #!/bin/sh
-printf '%s\n\n' 'squashfuse 0.6.3 (c) 2012 Dave Vasilevsky'
+printf '%s\n\n' 'squashfuse 0.6.5 (c) 2012 Dave Vasilevsky'
 printf 'Usage: %s [options] ARCHIVE MOUNTPOINT\n' "$0"
 case $0 in *squashfuse_ll*) exit 2;; *) exit 254;; esac
 EOF
@@ -21,4 +21,4 @@ output=$(HOST_ARCH=x86_64 FUSE_MOUNT_SMOKE=0 RELEASE_DIR="$FIXTURE/release" "$FI
 case $output in *'version/parser smoke passed for x86_64'*) ;;
  *) printf 'not ok - smoke orchestration output:\n%s\n' "$output" >&2; exit 1;; esac
 grep -F 'status=0' "$ROOT/scripts/smoke-test.sh" >/dev/null || { printf '%s\n' 'not ok - mount wait inherits stale version exit status' >&2; exit 1; }
-printf 'ok - exact 0.6.3 output and expected nonzero usage exits are accepted\n'
+printf 'ok - exact 0.6.5 output and expected nonzero usage exits are accepted\n'

@@ -1,6 +1,6 @@
 # squashfuse-static
 
-Statically linked [squashfuse 0.6.3](https://github.com/vasi/squashfuse) binaries. The release matrix produces musl + mimalloc outputs; the existing direct Ubuntu path remains available for local glibc outputs. Both `squashfuse` and `squashfuse_ll` are built.
+Statically linked [squashfuse 0.6.5](https://github.com/vasi/squashfuse) binaries. The release matrix produces musl + mimalloc outputs; the existing direct Ubuntu path remains available for local glibc outputs. Both `squashfuse` and `squashfuse_ll` are built.
 
 ## Build locally
 
@@ -53,7 +53,7 @@ Direct `build.sh` use defaults `TARGET_ARCH` to `uname -m`. On Alpine it creates
 
 | Dependency | Logical version | Exact commit |
 | --- | --- | --- |
-| squashfuse | 0.6.3 | `1a211e20fff55e9ce4c74ad03f0aa26a7b760bd3` |
+| squashfuse | 0.6.5 | `b3a880aacc63641c570f114ff8d45f221fc97d02` |
 | mimalloc | 2.1.7 | `8c532c32c3c96e5ba1f2283e032f69ead8add00f` |
 | libfuse | 3.18.2 | `033844748010a3b8265bf1c90b9ae8ffe4cd9ca7` |
 | XZ | 5.8.2 | `9fc6f5cd8774ebef8d4e030f7081fb6984c0dc3f` |
@@ -75,7 +75,7 @@ for test in tests/*.sh; do sh "$test"; done
 ./scripts/smoke-test.sh ARCH
 ```
 
-Validation requires a nonzero executable ELF64 static PIE (`ET_DYN`) with the exact machine and endianness, zero section headers after `sstrip`, mimalloc evidence, and neither `PT_INTERP` nor `DT_NEEDED`. The smoke test executes each binary natively or under the matching QEMU, requires the exact squashfuse 0.6.3 identity line, and recognizes squashfuse's documented nonzero usage exits (`254` and `2`). Foreign tests are version/parser checks; they never claim a FUSE mount passed. On native x86_64, a real read-through mount is attempted for both binaries only when `/dev/fuse` and all host tools are available; otherwise the output explicitly reports that the mount test was skipped. Fixture tests are self-contained and are not represented as real mounts.
+Validation requires a nonzero executable ELF64 static PIE (`ET_DYN`) with the exact machine and endianness, zero section headers after `sstrip`, mimalloc evidence, and neither `PT_INTERP` nor `DT_NEEDED`. The smoke test executes each binary natively or under the matching QEMU, requires the exact squashfuse 0.6.5 identity line, and recognizes squashfuse's documented nonzero usage exits (`254` and `2`). Foreign tests are version/parser checks; they never claim a FUSE mount passed. On native x86_64, a real read-through mount is attempted for both binaries only when `/dev/fuse` and all host tools are available; otherwise the output explicitly reports that the mount test was skipped. Fixture tests are self-contained and are not represented as real mounts.
 
 ## Release safety
 

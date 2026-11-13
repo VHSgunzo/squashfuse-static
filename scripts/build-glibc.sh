@@ -12,7 +12,7 @@ cd "$HERE"
 resolve_target_contract
 validate_native_target
 
-SQUASHFUSE_VERSION=0.6.3
+SQUASHFUSE_VERSION=0.6.5
 
 MIMALLOC_VERSION=2.1.7
 LIBFUSE_VERSION=3.18.2
